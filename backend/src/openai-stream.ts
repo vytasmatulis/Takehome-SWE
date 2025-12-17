@@ -96,10 +96,11 @@ export function createAIStream(
       const fullText = response.choices[0]?.message?.content || "";
 
       //TODO Vytas
-      if (!fullText 
-      //  || true
+      if (
+        !fullText
+        //  || true
       ) {
-        throw new Error('No response from AI');
+        throw new Error("No response from AI");
       }
 
       // Stream the response word by word for a natural typing effect

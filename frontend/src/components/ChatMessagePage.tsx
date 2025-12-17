@@ -24,14 +24,14 @@ export function ChatMessagePage() {
     if (loading) {
       return;
     }
-    setCurrentMessage("")
-    setSendingConversation(false)
+    setCurrentMessage("");
+    setSendingConversation(false);
     setError(null);
     setLoading(true);
-    
+
     try {
       const newMessages = await fetchMessages(id);
-      console.log(newMessages)
+      console.log(newMessages);
 
       setMessages(newMessages);
     } catch (e: any) {
@@ -114,74 +114,77 @@ export function ChatMessagePage() {
           <ChatMessage role={"assistant"} content={currentMessage} />
         )}
       </div>
-      { error && <div
-        style={{
-          background: "#3a1d1d",
-          color: "#ffb4b4",
-          border: "1px solid #6b2a2a",
-          padding: "10px 12px",
-          borderRadius: 6,
-          fontSize: 14,
-        }}
-      >
-      {error}
-      </div>}
-      {!error &&
-      <SearchBar
-        disabled= {sendingConversation}
-        onSend={(userQuery) => {
-          if (currentMessage != "" || sendingConversation) {
-            return
-          }
-          setSendingConversation(true)
+      {error && (
+        <div
+          style={{
+            background: "#3a1d1d",
+            color: "#ffb4b4",
+            border: "1px solid #6b2a2a",
+            padding: "10px 12px",
+            borderRadius: 6,
+            fontSize: 14,
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {!error && (
+        <SearchBar
+          disabled={sendingConversation}
+          onSend={(userQuery) => {
+            if (currentMessage != "" || sendingConversation) {
+              return;
+            }
+            setSendingConversation(true);
 
-          const msg: Message = {
-            content: userQuery,
-            role: "user",
-            status: "sent",
-          };
-          setMessages((messages) => [...messages, msg]);
-          subscribeToSSE(
-            "/chats/" + id + "/messages",
-            {
-              method: "POST",
-              body: JSON.stringify({
-                content: userQuery,
-              }),
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "text/event-stream",
+            const msg: Message = {
+              content: userQuery,
+              role: "user",
+              status: "sent",
+            };
+            setMessages((messages) => [...messages, msg]);
+            subscribeToSSE(
+              "/chats/" + id + "/messages",
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  content: userQuery,
+                }),
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "text/event-stream",
+                },
               },
-            },
-            {
-              onChunk: (data) => {
-                const text = (data as any)?.content ?? "";
-                setCurrentMessage((prev) => prev + text);
+              {
+                onChunk: (data) => {
+                  const text = (data as any)?.content ?? "";
+                  setCurrentMessage((prev) => prev + text);
+                },
+                onDone: (data) => {
+                  setCurrentMessage("");
+                  const text = (data as any)?.content ?? "";
+                  const msg: Message = {
+                    content: text,
+                    role: "assistant",
+                    status: "sent",
+                  };
+                  setMessages((messages) => [...messages, msg]);
+                  setSendingConversation(false);
+                },
+                onError: (data) => {
+                  const msg: Message = {
+                    content: currentMessage,
+                    role: "assistant",
+                    status: "failed",
+                  };
+                  setMessages((messages) => [...messages, msg]);
+                  setSendingConversation(false);
+                },
               },
-              onDone: (data) => {
-                setCurrentMessage("");
-                const text = (data as any)?.content ?? "";
-                const msg: Message = {
-                  content: text,
-                  role: "assistant",
-                  status: "sent",
-                };
-                setMessages((messages) => [...messages, msg]);
-                setSendingConversation(false)
-              },
-              onError: (data) => {
-                const msg: Message = {
-                  content: currentMessage,
-                  role: "assistant",
-                  status: "failed",
-                };
-                setMessages((messages) => [...messages, msg]);
-                setSendingConversation(false)
-              },
-            },
-          );
-        }}
-      />}
+            );
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -23,7 +23,7 @@ export default function ConversationList({
   const [error, setError] = useState<string | null>(null);
 
   const { id } = useParams<{ id: string }>();
-  
+
   const loadConversations = async () => {
     if (loading) {
       return;
@@ -32,10 +32,10 @@ export default function ConversationList({
     setLoading(true);
 
     //TODO Vytas, this needs to be in the router to get the id, this is always undefined rightnow
-    console.log(id)
+    console.log(id);
 
     if (id) {
-      setActiveConversationId(id)
+      setActiveConversationId(id);
     }
     try {
       const res = await fetchChats();
@@ -64,8 +64,8 @@ export default function ConversationList({
     >
       <NewChatButton
         onNewChat={async () => {
-          const conversation : Conversation = await createChat();
-          setConversations(prev => [conversation, ...prev]);
+          const conversation: Conversation = await createChat();
+          setConversations((prev) => [conversation, ...prev]);
           navigate(`/chats/${conversation.id}`);
         }}
       />
@@ -101,15 +101,17 @@ export default function ConversationList({
           </div>
         ) : (
           conversations.map((c) => {
-            return <ConversationButton
-              key={c.id}
-              conversation={c}
-              active={c.id === activeConversationId}
-              onClick={() => { 
-                setActiveConversationId(c.id)
-                onClickConversation(c.id)
-              }}
-            />;
+            return (
+              <ConversationButton
+                key={c.id}
+                conversation={c}
+                active={c.id === activeConversationId}
+                onClick={() => {
+                  setActiveConversationId(c.id);
+                  onClickConversation(c.id);
+                }}
+              />
+            );
           })
         )}
       </div>

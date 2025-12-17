@@ -48,10 +48,10 @@ export function ChatMessage({
         }}
       >
         <div>
-        {!isError
-          ? content || "Awaiting response… please come back later"
-          : "Failed Response"}
-      </div>
+          {!isError
+            ? content || "Awaiting response… please come back later"
+            : "Failed Response"}
+        </div>
 
         {isError && isLast && (
           <button

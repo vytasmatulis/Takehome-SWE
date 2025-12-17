@@ -1,4 +1,4 @@
-import { Conversation } from "../types.ts"
+import { Conversation } from "../types.ts";
 import { Message } from "../types.ts";
 
 const API_BASE = "/api";
@@ -115,10 +115,10 @@ export function subscribeToSSE(
         buffer = lines.pop() || "";
 
         let currentEvent = "";
-        console.log(lines)
+        console.log(lines);
         for (const line of lines) {
           if (line.startsWith("connected")) {
-            console.log("received initial packet")
+            console.log("received initial packet");
           }
           if (line.startsWith("event:")) {
             currentEvent = line.slice(6).trim();

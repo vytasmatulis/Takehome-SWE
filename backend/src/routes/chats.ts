@@ -43,11 +43,15 @@ router.post("/", async (req, res) => {
       )
       .run(convId, req.body.title);
 
-    const conversation = db.prepare(`
+    const conversation = db
+      .prepare(
+        `
       SELECT *
       FROM conversations
       WHERE id = ?
-    `).get(convId);
+    `,
+      )
+      .get(convId);
 
     res.json(conversation);
   } catch (err) {
@@ -146,11 +150,12 @@ router.get("/:id/messages", (req, res) => {
       WHERE id = ?
       ORDER BY created_at ASC
       LIMIT 1
-    `,)
+    `,
+      )
       .get(req.params.id);
 
     if (!conv) {
-      throw new Error("No conversation exists")
+      throw new Error("No conversation exists");
     }
     const rows = db
       .prepare(
