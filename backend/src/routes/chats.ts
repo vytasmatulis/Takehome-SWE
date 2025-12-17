@@ -308,6 +308,7 @@ async function sendMessage(
       ).run(msg, fullResponse, assistantMessageId);
 
       send("error", { error: msg });
+      clearInterval(ping);
       res.end();
     },
     (finalText: string) => {
