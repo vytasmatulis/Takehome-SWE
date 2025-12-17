@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { apiFetch, createChat, fetchChats, fetchMessages } from "../api/client";
 import { Conversation } from "../types.ts";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { NewChatButton } from "./NewChatButton.tsx";
+import { useMatch } from "react-router-dom";
 
 type Props = {
   className?: string;
@@ -21,12 +22,21 @@ export default function ConversationList({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { id } = useParams<{ id: string }>();
+  
   const loadConversations = async () => {
     if (loading) {
       return;
     }
     setError(null);
     setLoading(true);
+
+    //TODO Vytas, this needs to be in the router to get the id, this is always undefined rightnow
+    console.log(id)
+
+    if (id) {
+      setActiveConversationId(id)
+    }
     try {
       const res = await fetchChats();
       setConversations(res);
@@ -55,7 +65,7 @@ export default function ConversationList({
       <NewChatButton
         onNewChat={async () => {
           const conversation : Conversation = await createChat();
-          setConversations(prev => [...prev, conversation]);
+          setConversations(prev => [conversation, ...prev]);
           navigate(`/chats/${conversation.id}`);
         }}
       />

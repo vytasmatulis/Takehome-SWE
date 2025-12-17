@@ -115,7 +115,11 @@ export function subscribeToSSE(
         buffer = lines.pop() || "";
 
         let currentEvent = "";
+        console.log(lines)
         for (const line of lines) {
+          if (line.startsWith("connected")) {
+            console.log("received initial packet")
+          }
           if (line.startsWith("event:")) {
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith("data:")) {

@@ -47,7 +47,11 @@ export function ChatMessage({
           boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
         }}
       >
-        <div>{content || "Failed Response"}</div>
+        <div>
+        {!isError
+          ? content || "Awaiting response… please come back later"
+          : "Failed Response"}
+      </div>
 
         {isError && isLast && (
           <button

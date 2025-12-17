@@ -138,6 +138,20 @@ router.delete("/:id", (req, res) => {
  */
 router.get("/:id/messages", (req, res) => {
   try {
+    const conv = db
+      .prepare(
+        `
+      SELECT *
+      FROM conversations
+      WHERE id = ?
+      ORDER BY created_at ASC
+      LIMIT 1
+    `,)
+      .get(req.params.id);
+
+    if (!conv) {
+      throw new Error("No conversation exists")
+    }
     const rows = db
       .prepare(
         `
@@ -170,7 +184,6 @@ router.post("/:id/retry", (req, res) => {
     `);
 
     const latest_msg = latest_msg_query.get(req.params.id);
-
     if (!latest_msg || latest_msg.status != "failed") {
       throw new Error("No assistant row");
     }
@@ -211,7 +224,7 @@ type HistoryMessage = {
   content: string;
 };
 
-function sendMessage(
+async function sendMessage(
   res: Response,
   req: Request,
   content: string,
@@ -227,6 +240,11 @@ function sendMessage(
   res.setHeader("Connection", "keep-alive");
   res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders?.();
+  res.write(`: connected\n\n`);
+  const ping = setInterval(() => {
+    res.write(`connected\n\n`);
+  }, 10000);
+  await new Promise((r) => setImmediate(r));
 
   const userMessageId = uuidv4();
   const assistantMessageId = uuidv4();
@@ -302,7 +320,7 @@ function sendMessage(
         messageId: assistantMessageId,
         content: finalContent,
       });
-
+      clearInterval(ping);
       res.end();
     },
     { conversationHistory: history },
@@ -310,10 +328,10 @@ function sendMessage(
 
   // client disconnect
   req.on("close", () => {
-    // TODO Vytas
-    // closed = true;
+    closed = true;
     console.log("CLOSED");
-    // cleanup?.();
+    cleanup?.();
+    clearInterval(ping);
 
     db.prepare(
       `

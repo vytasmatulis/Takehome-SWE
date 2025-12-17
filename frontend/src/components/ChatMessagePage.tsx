@@ -24,13 +24,18 @@ export function ChatMessagePage() {
     if (loading) {
       return;
     }
+    setCurrentMessage("")
+    setSendingConversation(false)
     setError(null);
     setLoading(true);
+    
     try {
       const newMessages = await fetchMessages(id);
+      console.log(newMessages)
+
       setMessages(newMessages);
     } catch (e: any) {
-      if (e?.name !== "AbortError") setError("Failed to load conversations.");
+      if (e?.name !== "AbortError") setError("Failed to load conversation.");
     } finally {
       setLoading(false);
     }
@@ -109,6 +114,19 @@ export function ChatMessagePage() {
           <ChatMessage role={"assistant"} content={currentMessage} />
         )}
       </div>
+      { error && <div
+        style={{
+          background: "#3a1d1d",
+          color: "#ffb4b4",
+          border: "1px solid #6b2a2a",
+          padding: "10px 12px",
+          borderRadius: 6,
+          fontSize: 14,
+        }}
+      >
+      {error}
+      </div>}
+      {!error &&
       <SearchBar
         disabled= {sendingConversation}
         onSend={(userQuery) => {
@@ -163,7 +181,7 @@ export function ChatMessagePage() {
             },
           );
         }}
-      />
+      />}
     </div>
   );
 }
