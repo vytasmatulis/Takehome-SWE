@@ -26,6 +26,7 @@ Retry logic just sends the message with history again through to stream the resp
 ## What I'd Do Differently
 
 Move out some of the api logic into own functions so that it can be reused in other api calls. Ex: db calls that may be reused.
+
 Some minor bugs that had to be bandaid fixed should be actually fixed. 
 
 Would probably refactor to have a page system.
@@ -35,6 +36,8 @@ I would also implement the title change and make new chats temporary.
 Also deleting conversations should be implemented.
 
 Also does not handle cancelling messages.
+
+Some of these are marked in comments with //TODO Vytas.
 
 ## Time Spent
 
