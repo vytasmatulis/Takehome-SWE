@@ -11,14 +11,14 @@
  * - Cleanup function to cancel mid-stream
  */
 
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 export interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -36,6 +36,11 @@ You help users analyze construction documents, compare bids, review specificatio
 Keep responses concise but informative. Use markdown formatting when helpful (bullet points, bold for emphasis).
 If you don't have enough context to answer a question, ask for clarification.`;
 
+//TODO Vytas
+const GIVE_A_TITLE = `You are a helpful AI assistant for a construction document management platform called Muro.
+You help users analyze construction documents, compare bids, review specifications, and answer questions about their projects.
+Your purpose here is to give a short title made up of only ASCII text, for the conversation`;
+
 /**
  * Creates a streaming AI response using the OpenAI API.
  *
@@ -51,7 +56,8 @@ export function createAIStream(
   onChunk: (text: string) => void,
   onError: (error: Error) => void,
   onDone: (fullResponse: string) => void,
-  options: StreamOptions = {}
+  options: StreamOptions = {},
+  isTitle = false,
 ): () => void {
   const {
     instructions = DEFAULT_INSTRUCTIONS,
@@ -63,20 +69,23 @@ export function createAIStream(
   let timeoutId: NodeJS.Timeout | null = null;
 
   // Build messages array for chat completion
-  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-    { role: 'system', content: instructions },
+  const messages: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }> = [
+    { role: "system", content: instructions },
     ...conversationHistory.map((msg) => ({
-      role: msg.role as 'user' | 'assistant',
+      role: msg.role as "user" | "assistant",
       content: msg.content,
     })),
-    { role: 'user', content: userMessage },
+    { role: "user", content: userMessage },
   ];
 
   (async () => {
     try {
       // Call OpenAI Chat Completions API
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini', // Fast and cost-effective
+        model: "gpt-4o-mini", // Fast and cost-effective
         messages,
         max_tokens: 1024,
       });
@@ -84,11 +93,12 @@ export function createAIStream(
       if (cancelled) return;
 
       // Get the response text
-      const fullText = response.choices[0]?.message?.content || '';
+      const fullText = response.choices[0]?.message?.content || "";
 
-      if (!fullText) {
-        throw new Error('No response from AI');
-      }
+      //TODO Vytas
+      // if (!fullText || true) {
+      //   throw new Error('No response from AI');
+      // }
 
       // Stream the response word by word for a natural typing effect
       const words = fullText.split(/(\s+)/); // Keep whitespace
@@ -106,28 +116,27 @@ export function createAIStream(
 
         timeoutId = setTimeout(() => streamWord(index + 1), streamDelay);
       };
-
       streamWord(0);
     } catch (error) {
       if (cancelled) return;
 
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      console.error('OpenAI API error:', err.message);
+      const err = error instanceof Error ? error : new Error("Unknown error");
+      console.error("OpenAI API error:", err.message);
 
       // Provide user-friendly error messages
-      if (err.message.includes('API key')) {
+      if (err.message.includes("API key")) {
         onError(
-          new Error('AI service configuration error. Please contact support.')
+          new Error("AI service configuration error. Please contact support."),
         );
-      } else if (err.message.includes('rate limit')) {
+      } else if (err.message.includes("rate limit")) {
+        onError(new Error("AI service is busy. Please try again in a moment."));
+      } else if (err.message.includes("insufficient_quota")) {
         onError(
-          new Error('AI service is busy. Please try again in a moment.')
+          new Error("AI service quota exceeded. Please contact support."),
         );
-      } else if (err.message.includes('insufficient_quota')) {
-        onError(new Error('AI service quota exceeded. Please contact support.'));
       } else {
         onError(
-          new Error('AI service temporarily unavailable. Please try again.')
+          new Error("AI service temporarily unavailable. Please try again."),
         );
       }
     }
@@ -147,25 +156,28 @@ export function createAIStream(
  */
 export async function getAIResponse(
   userMessage: string,
-  options: StreamOptions = {}
+  options: StreamOptions = {},
 ): Promise<string> {
   const { instructions = DEFAULT_INSTRUCTIONS, conversationHistory = [] } =
     options;
 
-  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-    { role: 'system', content: instructions },
+  const messages: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }> = [
+    { role: "system", content: instructions },
     ...conversationHistory.map((msg) => ({
-      role: msg.role as 'user' | 'assistant',
+      role: msg.role as "user" | "assistant",
       content: msg.content,
     })),
-    { role: 'user', content: userMessage },
+    { role: "user", content: userMessage },
   ];
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: "gpt-4o-mini",
     messages,
     max_tokens: 1024,
   });
 
-  return response.choices[0]?.message?.content || '';
+  return response.choices[0]?.message?.content || "";
 }
