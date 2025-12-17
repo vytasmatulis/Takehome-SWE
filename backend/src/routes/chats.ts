@@ -42,7 +42,14 @@ router.post("/", async (req, res) => {
     `,
       )
       .run(convId, req.body.title);
-    res.json(convId);
+
+    const conversation = db.prepare(`
+      SELECT *
+      FROM conversations
+      WHERE id = ?
+    `).get(convId);
+
+    res.json(conversation);
   } catch (err) {
     console.error("Failed to create conversation", err);
     res.status(500).json({ error: "Failed to create conversation" });
@@ -162,18 +169,8 @@ router.post("/:id/retry", (req, res) => {
       LIMIT 1
     `);
 
-    // const TEST = db.prepare<[string], Message>(`
-    //   SELECT *
-    //   FROM messages
-    //   WHERE conversation_id = ?
-    //   ORDER BY created_at DESC
-    //   LIMIT 2
-    // `).all(req.params.id);
-    // console.log(TEST)
-
     const latest_msg = latest_msg_query.get(req.params.id);
 
-    console.log(latest_msg);
     if (!latest_msg || latest_msg.status != "failed") {
       throw new Error("No assistant row");
     }
@@ -243,7 +240,7 @@ function sendMessage(
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
-  // 1) load history
+  // 1) Get history
   const history = db
     .prepare<[string], HistoryMessage>(
       `

@@ -13,6 +13,8 @@ export function ChatMessagePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [sendingConversation, setSendingConversation] = useState(false);
+
   const { id } = useParams<{ id: string }>();
 
   const loadConversation = async () => {
@@ -57,7 +59,6 @@ export function ChatMessagePage() {
             role: "assistant",
             status: "sent",
           };
-          console.log(messages);
           setMessages((messages) => [...messages, msg]);
         },
         onError: (data) => {
@@ -109,7 +110,13 @@ export function ChatMessagePage() {
         )}
       </div>
       <SearchBar
+        disabled= {sendingConversation}
         onSend={(userQuery) => {
+          if (currentMessage != "" || sendingConversation) {
+            return
+          }
+          setSendingConversation(true)
+
           const msg: Message = {
             content: userQuery,
             role: "user",
@@ -141,8 +148,8 @@ export function ChatMessagePage() {
                   role: "assistant",
                   status: "sent",
                 };
-                console.log(messages);
                 setMessages((messages) => [...messages, msg]);
+                setSendingConversation(false)
               },
               onError: (data) => {
                 const msg: Message = {
@@ -151,6 +158,7 @@ export function ChatMessagePage() {
                   status: "failed",
                 };
                 setMessages((messages) => [...messages, msg]);
+                setSendingConversation(false)
               },
             },
           );

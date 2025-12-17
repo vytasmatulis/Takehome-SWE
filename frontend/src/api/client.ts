@@ -1,4 +1,4 @@
-import { Conversation } from "../../../shared/types/Conversation.ts";
+import { Conversation } from "../types.ts"
 import { Message } from "../types.ts";
 
 const API_BASE = "/api";
@@ -45,8 +45,8 @@ export async function fetchMessages(convId: string): Promise<Message[]> {
   return await apiFetch<Message[]>("/chats/" + convId + "/messages");
 }
 
-export async function createChat(): Promise<string> {
-  return await apiFetch<string>("/chats", { method: "POST" });
+export async function createChat(): Promise<Conversation> {
+  return await apiFetch<Conversation>("/chats", { method: "POST" });
 }
 
 export async function sendMessage(convId: string): Promise<string> {

@@ -54,8 +54,9 @@ export default function ConversationList({
     >
       <NewChatButton
         onNewChat={async () => {
-          const id = await createChat();
-          navigate(`/chats/${id}`);
+          const conversation : Conversation = await createChat();
+          setConversations(prev => [...prev, conversation]);
+          navigate(`/chats/${conversation.id}`);
         }}
       />
       {error && (
